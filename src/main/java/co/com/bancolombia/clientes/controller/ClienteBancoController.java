@@ -6,22 +6,32 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 
+import com.google.gson.Gson;
+
+import co.com.bancolombia.clientes.dto.AutenticationRequestDTO;
+import co.com.bancolombia.clientes.dto.AutenticationResponseDTO;
 import co.com.bancolombia.clientes.dto.ClienteBancoDTO;
 import co.com.bancolombia.clientes.dto.CuentaDTO;
 import co.com.bancolombia.clientes.entities.ClienteBanco;
+import co.com.bancolombia.clientes.entities.UserToken;
 import co.com.bancolombia.clientes.exception.ResourceNotFoundException;
 import co.com.bancolombia.clientes.repositories.ClienteBancoRepository;
+import co.com.bancolombia.clientes.repositories.UserTokenRepository;
 import co.com.bancolombia.clientes.util.Constantes;
 import co.com.bancolombia.clientes.util.ConvertClienteBanco;
 import co.com.bancolombia.clientes.util.ConvertCuenta;
-
 
 @RestController
 public class ClienteBancoController {
@@ -34,6 +44,30 @@ public class ClienteBancoController {
 	
 	@Autowired
 	private ConvertCuenta convertCuenta;
+	
+	@Autowired
+	UserToken userToken;
+	
+	@Autowired
+    private RestTemplate restTemplate;
+	
+	@Autowired
+	UserTokenRepository userTokenRepository;
+	
+	@PostMapping("/autenticar")
+	public String autenticar(@RequestBody AutenticationRequestDTO autenticationRequestDTO) {
+		String baseUrl= "http://localhost:8080";	
+		baseUrl=baseUrl+"/auth/signin";
+		ResponseEntity<String> postResponse = restTemplate.postForEntity(baseUrl, autenticationRequestDTO, String.class);
+		System.out.println("Respuesta: "+postResponse.getBody());
+		Gson g = new Gson();
+		AutenticationResponseDTO autenticationResponseDTO = g.fromJson(postResponse.getBody(), AutenticationResponseDTO.class);
+		userToken.setUsername(autenticationResponseDTO.getUsername());
+		userToken.setToken(autenticationResponseDTO.getToken());
+		userTokenRepository.save(userToken);
+		return autenticationResponseDTO.getToken();
+		
+	}
 	
 	@PostMapping("/clientes/adicionarCliente")
 	public Map<String, String> adicionarCliente(@RequestBody ClienteBancoDTO clienteBancoDTO){

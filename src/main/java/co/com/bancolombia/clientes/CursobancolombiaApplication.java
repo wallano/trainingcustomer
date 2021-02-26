@@ -4,6 +4,8 @@ import org.modelmapper.ModelMapper;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import co.com.bancolombia.clientes.dto.CuentaDTO;
 import co.com.bancolombia.clientes.util.ConvertClienteBanco;
@@ -35,6 +37,11 @@ public class CursobancolombiaApplication {
 	@Bean
 	public ConvertClienteBanco convertClienteBanco() {
 		return new ConvertClienteBanco();
+	}
+	
+	@Bean
+	PasswordEncoder getEncoder() {
+	    return new BCryptPasswordEncoder();
 	}
 
 }
